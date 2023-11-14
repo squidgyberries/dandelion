@@ -6,6 +6,8 @@ set(OpenGL_GL_PREFERENCE GLVND)
 endif()
 add_subdirectory(raylib)
 
+add_subdirectory(fmt)
+
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
@@ -13,7 +15,8 @@ add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
 set(
   SRC
   src/dandelion.cpp
+  src/raygui.c
 )
 
 add_executable(${PROJECT_NAME} ${SRC})
-target_link_libraries(${PROJECT_NAME} raylib)
+target_link_libraries(${PROJECT_NAME} raylib fmt)
