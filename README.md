@@ -1,5 +1,5 @@
-# dandelion
-HiMCM 2023 Problem A submission
+# dandelion, for project in its submission form, see branch `submission`
+HiMCM 2023 Problem A simulation
 
 Simulates dandelion spread and growth
 
