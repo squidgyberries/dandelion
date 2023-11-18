@@ -2,6 +2,7 @@
 #include <chrono>
 #include <cmath>
 #include <condition_variable>
+#include <cstdint>
 #include <forward_list>
 #include <fstream>
 #include <iostream>
@@ -76,17 +77,17 @@ struct Dandelion {
     SubsequentMaturing
   };
 
-  uint16_t age = 0;
-  uint16_t days_since_last_stage = 0;
+  std::uint16_t age = 0;
+  std::uint16_t days_since_last_stage = 0;
   Stage stage = Stage::Germinating;
-  uint8_t health = 50;
+  std::uint8_t health = 50;
 
-  uint8_t germination_time = 17;
-  uint8_t mature_time = 30;
-  uint8_t flower_time = 50;
-  uint8_t wither_time = 10;
-  uint8_t puffball_time = 15;
-  uint16_t sub_mature_time = 350;
+  std::uint8_t germination_time = 17;
+  std::uint8_t mature_time = 30;
+  std::uint8_t flower_time = 50;
+  std::uint8_t wither_time = 10;
+  std::uint8_t puffball_time = 15;
+  std::uint16_t sub_mature_time = 350;
   bool is_first = false;
 
   Dandelion() = delete;
@@ -98,41 +99,41 @@ struct Dandelion {
         puffball_time(puffball_dist(mt)), sub_mature_time(sub_mature_dist(mt)),
         is_first(false) {}
 
-  inline uint8_t egermination_time() {
+  inline std::uint8_t egermination_time() {
     if (health >= 50) {
       return germination_time;
     }
-    return (1.0f - (float)(50 - health) / 100.0f) * germination_time;
+    return (1.0f - static_cast<float>(50 - health) / 100.0f) * germination_time;
   }
-  inline uint8_t emature_time() {
+  inline std::uint8_t emature_time() {
     if (health >= 50) {
       return mature_time;
     }
-    return (1.0f - (float)(50 - health) / 100.0f) * mature_time;
+    return (1.0f - static_cast<float>(50 - health) / 100.0f) * mature_time;
   }
-  inline uint8_t eflower_time() {
+  inline std::uint8_t eflower_time() {
     if (health >= 50) {
       return flower_time;
     }
-    return (1.0f - (float)(50 - health) / 100.0f) * flower_time;
+    return (1.0f - static_cast<float>(50 - health) / 100.0f) * flower_time;
   }
-  inline uint8_t ewither_time() {
+  inline std::uint8_t ewither_time() {
     if (health >= 50) {
       return wither_time;
     }
-    return (1.0f - (float)(50 - health) / 100.0f) * wither_time;
+    return (1.0f - static_cast<float>(50 - health) / 100.0f) * wither_time;
   }
-  inline uint8_t epuffball_time() {
+  inline std::uint8_t epuffball_time() {
     if (health >= 50) {
       return puffball_time;
     }
-    return (1.0f - (float)(50 - health) / 100.0f) * puffball_time;
+    return (1.0f - static_cast<float>(50 - health) / 100.0f) * puffball_time;
   }
-  inline uint8_t esub_mature_time() {
+  inline std::uint8_t esub_mature_time() {
     if (health >= 50) {
       return sub_mature_time;
     }
-    return (1.0f - (float)(50 - health) / 100.0f) * sub_mature_time;
+    return (1.0f - static_cast<float>(50 - health) / 100.0f) * sub_mature_time;
   }
 };
 
@@ -145,7 +146,7 @@ struct NewSeed {
 };
 
 std::atomic<int> full_grid[segments][segments];
-std::atomic<uint64_t> total_dandelion_number = 0;
+std::atomic<std::uint64_t> total_dandelion_number = 0;
 
 // top left
 std::mutex grid1_mutex;
@@ -175,7 +176,7 @@ std::atomic<int> cv4_state = 0;
 std::vector<Dandelion> grid4[segments / 2][segments / 2];
 std::queue<NewSeed> grid4_seed_queue;
 
-std::atomic<uint64_t> day = 1;
+std::atomic<std::uint64_t> day = 1;
 std::atomic<bool> should_close = false;
 std::atomic<bool> paused = false;
 std::vector<std::string> snap_dates;
@@ -296,7 +297,8 @@ int handle_dandelion(Dandelion &dand, std::mt19937 &mt) {
 }
 
 GridCoords gen_seed(std::mt19937 &mt) {
-  int dist = std::round(wind_dist_dist(mt) + 3.0f * (float)wind_speed / 3.6f);
+  int dist = std::round(wind_dist_dist(mt) +
+                        3.0f * static_cast<float>(wind_speed) / 3.6f);
   int angle = std::round(wind_angle_dist_normal(mt)) + wind_dir;
   int movex = std::round(dist * std::sin(angle * DEG2RAD));
   int movey = std::round(dist * std::cos(angle * DEG2RAD));
@@ -551,7 +553,8 @@ void simulate_master() {
         if (date == s) {
           std::string image_filename = date + ".png";
           std::cout << "Saving " << image_filename << "..." << std::endl;
-          unsigned char *image = (unsigned char *)std::malloc(800 * 800 * 3);
+          unsigned char *image =
+              static_cast<unsigned char *>(std::malloc(800 * 800 * 3));
           for (int i = 0; i < 800 * 800 * 3; ++i) {
             image[i] = 255;
           }
@@ -562,7 +565,7 @@ void simulate_master() {
               int size = full_grid[gridy][gridx];
               if (size > 0) {
                 int diff = clamp(((size / 100) + 1) * 10, 0, 240);
-                unsigned char val = (unsigned char)(255 - diff);
+                unsigned char val = static_cast<unsigned char>(255 - diff);
                 image[y * 800 * 3 + x * 3] = val;
                 image[y * 800 * 3 + x * 3 + 1] = val;
                 image[y * 800 * 3 + x * 3 + 2] = val;
@@ -602,8 +605,10 @@ void simulate_master() {
       } else {
         season = Season::Autumn;
       }
-      humidity = humidities[(int)season.load()][(int)climate.load()];
-      light = lights[(int)season.load()][(int)climate.load()];
+      humidity = humidities[static_cast<int>(season.load())]
+                           [static_cast<int>(climate.load())];
+      light = lights[static_cast<int>(season.load())]
+                    [static_cast<int>(climate.load())];
 
       cv1_state = 1;
       cv2_state = 1;
@@ -659,13 +664,13 @@ void simulate_master() {
 }
 
 Vector2 transform_point(Vector2 in) {
-  return {(float)((zoom * (in.x - camera.x)) + view_width / 2.0f),
-          (float)(-(zoom * (in.y - camera.y)) + view_height / 2.0f +
-                  (float)top_bar_height)};
+  return {static_cast<float>((zoom * (in.x - camera.x)) + view_width / 2.0f),
+          static_cast<float>(-(zoom * (in.y - camera.y)) + view_height / 2.0f +
+                             static_cast<float>(top_bar_height))};
 }
 
 Vector2 transform_size(Vector2 in) {
-  return {(float)(zoom * in.x), (float)(zoom * in.y)};
+  return {static_cast<float>(zoom * in.x), static_cast<float>(zoom * in.y)};
 }
 
 int main(int argc, char **argv) {
@@ -762,8 +767,8 @@ int main(int argc, char **argv) {
           for (int y = 0; y < segments; ++y) {
             for (int x = 0; x < segments; ++x) {
               float block_size = 8.0f;
-              Vector2 top_left = {(float)((x * block_size) - 400),
-                                  (float)(400 - (y * block_size))};
+              Vector2 top_left = {static_cast<float>((x * block_size) - 400),
+                                  static_cast<float>(400 - (y * block_size))};
               top_left = transform_point(top_left);
               if (CheckCollisionPointRec(
                       mouse_position,
@@ -817,11 +822,11 @@ int main(int argc, char **argv) {
           s = true;
         }
         int size = full_grid[y][x];
-        Vector2 top_left =
-            transform_point({(float)(x * 8 - 400), (float)(400 - y * 8)});
+        Vector2 top_left = transform_point(
+            {static_cast<float>(x * 8 - 400), static_cast<float>(400 - y * 8)});
         if (size > 0) {
           int diff = clamp(((size / 100) + 1) * 10, 0, 240);
-          unsigned char val = (unsigned char)(255 - diff);
+          unsigned char val = static_cast<unsigned char>(255 - diff);
           Color c = {val, val, val, 255};
           DrawRectangleV(top_left, transform_size({8.0f, 8.0f}), c);
         }
@@ -836,10 +841,11 @@ int main(int argc, char **argv) {
     DrawRectangle(0, 0, view_width, top_bar_height, RAYWHITE);
     DrawLine(0, top_bar_height, view_width, top_bar_height, BLACK);
 
-    std::string status_text = fmt::format(
-        "{} | {:.1f} C | {}% | {:.2f} h | {:.1f} | {} | {:.2f}",
-        season_strings[(int)season.load()], temperature.load(), humidity.load(),
-        light.load(), precipitation.load(), wind_dir.load(), wind_speed.load());
+    std::string status_text =
+        fmt::format("{} | {:.1f} C | {}% | {:.2f} h | {:.1f} | {} | {:.2f}",
+                    season_strings[static_cast<int>(season.load())],
+                    temperature.load(), humidity.load(), light.load(),
+                    precipitation.load(), wind_dir.load(), wind_speed.load());
     DrawText(status_text.c_str(), 10, 10, 20, BLACK);
 
     if (selected.x != -1 && selected.y != -1) {
