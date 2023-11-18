@@ -552,7 +552,7 @@ void simulate_master() {
           std::string image_filename = date + ".png";
           std::cout << "Saving " << image_filename << "..." << std::endl;
           unsigned char *image = (unsigned char *)std::malloc(800 * 800 * 3);
-          for (int i = 0 ; i < 800 * 800 * 3; ++i) {
+          for (int i = 0; i < 800 * 800 * 3; ++i) {
             image[i] = 255;
           }
           for (int y = 0; y < 800; ++y) {
@@ -757,22 +757,25 @@ int main(int argc, char **argv) {
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
       if (!dragging) {
         bool found = false;
-        for (int y = 0; y < segments; ++y) {
-          for (int x = 0; x < segments; ++x) {
-            float block_size = zoom * 8.0f;
-            Vector2 top_left = {(float)((x * block_size) - 400),
-                                (float)(400 - (y * block_size))};
-            top_left = transform_point(top_left);
-            if (CheckCollisionPointRec(
-                    mouse_position,
-                    {top_left.x, top_left.y, block_size, block_size})) {
-              selected = {x, y};
-              found = true;
+        if (CheckCollisionPointRec(
+                mouse_position, {0, top_bar_height, view_width, view_height})) {
+          for (int y = 0; y < segments; ++y) {
+            for (int x = 0; x < segments; ++x) {
+              float block_size = 8.0f;
+              Vector2 top_left = {(float)((x * block_size) - 400),
+                                  (float)(400 - (y * block_size))};
+              top_left = transform_point(top_left);
+              if (CheckCollisionPointRec(
+                      mouse_position,
+                      {top_left.x, top_left.y, block_size, block_size})) {
+                selected = {x, y};
+                found = true;
+                break;
+              }
+            }
+            if (found) {
               break;
             }
-          }
-          if (found) {
-            break;
           }
         }
         if (!found) {
@@ -814,16 +817,15 @@ int main(int argc, char **argv) {
           s = true;
         }
         int size = full_grid[y][x];
-        Vector2 top_left = {(float)(x * 8 - 400), (float)(400 - y * 8)};
+        Vector2 top_left =
+            transform_point({(float)(x * 8 - 400), (float)(400 - y * 8)});
         if (size > 0) {
           int diff = clamp(((size / 100) + 1) * 10, 0, 240);
           unsigned char val = (unsigned char)(255 - diff);
           Color c = {val, val, val, 255};
-          DrawRectangleV(transform_point(top_left),
-                         transform_size({8.0f, 8.0f}), c);
+          DrawRectangleV(top_left, transform_size({8.0f, 8.0f}), c);
         }
         if (s) {
-          top_left = transform_point(top_left);
           DrawRectangleLines(top_left.x, top_left.y, zoom * 8.0f, zoom * 8.0f,
                              GREEN);
         }
